@@ -1,36 +1,28 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
-  channel = "stable-23.05"; # "stable-23.05" or "unstable"
-  services.docker.enable = true;
-  # Use https://search.nixos.org/packages to  find packages
+  # Which nixpkgs channel to use.
+  channel = "stable-23.11"; # or "unstable"
+  # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.python310
-    # pkgs.go
-    # pkgs.python310Packages.pip
+    pkgs.python3
+    pkgs.python311Packages.pip
+    pkgs.python311Packages.fastapi
+    pkgs.python311Packages.uvicorn
   ];
   # Sets environment variables in the workspace
-  env = {
-    HELLO = "world";
+  env = {};
+  idx = {
+    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
+    extensions = [ "ms-python.python" "rangav.vscode-thunder-client"  "humao.rest-client" "ms-python.debugpy"];
+    workspace = {
+      # Runs when a workspace is first created with this `dev.nix` file
+      onCreate = {
+        install =
+          "python -m venv .venv && source .venv/bin/activate &&  pip install -r requirements.txt";
+        # Open editors for the following files by default, if they exist:
+        default.openFiles = [ "app.py" ];
+      };
+      # To run something each time the workspace is (re)started, use the `onStart` hook
+      onStart = { run-server = "./devserver.sh"; };
+    };
   };
-  # search for the extension on https://open-vsx.org/ and use "publisher.id"
-  idx.extensions = [
-    # "vscodevim.vim"
-    "humao.rest-client"
-  ];
-  # preview configuration, identical to monospace.json
-  idx.previews = {
-    enable = true;
-    previews = [
-      {
-        command = ["python3" "-m" "http.server" "$PORT" "--bind" "0.0.0.0"];
-        cwd = "/home/user/myapp";
-        manager = "web";
-        id = "web";
-        env = {
-          HELLO = "world";
-        };
-      }
-    ];
-};
 }
